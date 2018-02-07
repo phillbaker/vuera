@@ -24,12 +24,12 @@ const makeReactContainer = Component => {
     }
 
     render () {
-      const { children, ...rest } = this.state
+      const { children, '': invoker, ...rest } = this.state
       const wrappedChildren = this.wrapVueChildren(children)
 
       return (
         <Component {...rest}>
-          <VueWrapper component={wrappedChildren} />
+          { children ? <VueWrapper component={wrappedChildren} /> : null }
         </Component>
       )
     }
@@ -44,12 +44,13 @@ export default {
   methods: {
     mountReactComponent (component) {
       const Component = makeReactContainer(component)
+      const children = this.$slots.default ? { children: this.$slots.default } : {}
       ReactDOM.render(
         <Component
           {...this.$props.passedProps}
           {...this.$attrs}
           {...this.$listeners}
-          children={this.$slots.default}
+          {...children}
           ref={ref => (this.reactComponentRef = ref)}
         />,
         this.$refs.react
@@ -67,7 +68,9 @@ export default {
      * AFAIK, this is the only way to update children. It doesn't seem to be possible to watch
      * `$slots` or `$children`.
      */
-    this.reactComponentRef.setState({ children: this.$slots.default })
+    if (this.$slots.default) {
+      this.reactComponentRef.setState({ children: this.$slots.default })
+    }
   },
   inheritAttrs: false,
   watch: {
