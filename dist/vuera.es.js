@@ -121,48 +121,6 @@ var possibleConstructorReturn = function (self, call) {
   return call && (typeof call === "object" || typeof call === "function") ? call : self;
 };
 
-
-
-
-
-var slicedToArray = function () {
-  function sliceIterator(arr, i) {
-    var _arr = [];
-    var _n = true;
-    var _d = false;
-    var _e = undefined;
-
-    try {
-      for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) {
-        _arr.push(_s.value);
-
-        if (i && _arr.length === i) break;
-      }
-    } catch (err) {
-      _d = true;
-      _e = err;
-    } finally {
-      try {
-        if (!_n && _i["return"]) _i["return"]();
-      } finally {
-        if (_d) throw _e;
-      }
-    }
-
-    return _arr;
-  }
-
-  return function (arr, i) {
-    if (Array.isArray(arr)) {
-      return arr;
-    } else if (Symbol.iterator in Object(arr)) {
-      return sliceIterator(arr, i);
-    } else {
-      throw new TypeError("Invalid attempt to destructure non-iterable instance");
-    }
-  };
-}();
-
 var VUE_COMPONENT_NAME = 'vuera-internal-component-name';
 
 var wrapReactChildren = function wrapReactChildren(createElement, children) {
@@ -220,7 +178,7 @@ var VueContainer = function (_React$Component) {
        * function for deep object comparison. I don't know if this hurts performance a lot, maybe
        * we do need to compare those objects.
        */
-      Object.assign(this.vueInstance.$data, props);
+      this.vueInstance.$data = _extends({}, this.vueInstance.$data, props);
     }
   }, {
     key: 'componentWillUnmount',
@@ -442,14 +400,10 @@ var VuePlugin = {
       }
 
       var mergedValue = originalComponentsMergeStrategy.apply(undefined, [parent].concat(args));
-      var wrappedComponents = mergedValue ? Object.entries(mergedValue).reduce(function (acc, _ref) {
-        var _ref2 = slicedToArray(_ref, 2),
-            k = _ref2[0],
-            v = _ref2[1];
-
-        return _extends({}, acc, defineProperty({}, k, isReactComponent(v) ? VueResolver$$1(v) : v));
+      var wrappedComponents = mergedValue ? Object.keys(mergedValue).reduce(function (acc, k) {
+        return _extends({}, acc, defineProperty({}, k, isReactComponent(mergedValue[k]) ? VueResolver$$1(mergedValue[k]) : mergedValue[k]));
       }, {}) : mergedValue;
-      return Object.assign(parent, wrappedComponents);
+      return _extends({}, parent, wrappedComponents);
     };
   }
 };
@@ -466,7 +420,7 @@ function ReactResolver$$1(component) {
  * isn't a valid React element, wraps it into a Vue container.
  */
 function babelReactResolver$$1(component, props, children) {
-  return isReactComponent(component) ? React.createElement(component, props, children) : React.createElement(VueContainer, Object.assign({ component: component }, props), children);
+  return isReactComponent(component) ? React.createElement(component, props, children) : React.createElement(VueContainer, _extends({ component: component }, props), children);
 }
 
 export { ReactWrapper, VueContainer as VueWrapper, babelReactResolver$$1 as __vueraReactResolver, VuePlugin, ReactResolver$$1 as VueInReact, VueResolver$$1 as ReactInVue };
